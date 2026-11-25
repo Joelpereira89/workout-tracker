@@ -22,7 +22,13 @@ let messageTimer = null;
 /* ---------- Saving and loading ---------- */
 
 function emptyData() {
-  return { version: 1, customExercises: [], entries: [] };
+  return { version: 1, customExercises: [], entries: [], schedule: null };
+}
+
+// The weekly schedule: seven days, Monday first. Anything unexpected is ignored.
+function cleanSchedule(schedule) {
+  const isDay = (d) => d && typeof d.free === "boolean" && typeof d.time === "string" && MINUTE_CHOICES.includes(d.minutes);
+  return Array.isArray(schedule) && schedule.length === 7 && schedule.every(isDay) ? schedule : null;
 }
 
 // Checks that data (from storage or from a backup file) has the right shape.
@@ -40,6 +46,7 @@ function cleanData(raw) {
   return {
     version: 1,
     customExercises: raw.customExercises,
+    schedule: cleanSchedule(raw.schedule),
     entries: raw.entries.map((e) => ({ ...e, notes: typeof e.notes === "string" ? e.notes : "" }))
   };
 }
@@ -339,6 +346,8 @@ function renderBests() {
 }
 
 function renderAll() {
+  renderToday();
+  renderSchedule();
   renderHistory();
   renderBests();
 }
@@ -389,7 +398,8 @@ async function importData(event) {
 
   const hadProblem = storageProblem;
   storageProblem = false;
-  if (!saveData(incoming)) {
+  // Older backups have no schedule, so keep the one already on this device
+  if (!saveData({ ...incoming, schedule: incoming.schedule || data.schedule })) {
     storageProblem = hadProblem;
     return;
   }
@@ -414,6 +424,17 @@ $("cancel-edit").addEventListener("click", () => { resetForm(); showTab("history
 $("export").addEventListener("click", exportData);
 $("import").addEventListener("click", () => $("import-file").click());
 $("import-file").addEventListener("change", importData);
+$("save-schedule").addEventListener("click", saveSchedule);
+
+// If you come back to the app on a new day, move on to that day
+let openedOn = today();
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden || today() === openedOn) return;
+  if (!editingId && $("date").value === openedOn) $("date").value = today();
+  openedOn = today();
+  renderToday();
+  renderWeek();
+});
 
 // If the app is open in two browser tabs, keep them in step
 window.addEventListener("storage", () => {

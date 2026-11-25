@@ -14,17 +14,35 @@
   <header>
     <h1>Workout Tracker</h1>
     <nav class="tabs">
-      <button type="button" class="tab active" data-tab="log">Log</button>
+      <button type="button" class="tab active" data-tab="today">Today</button>
+      <button type="button" class="tab" data-tab="schedule">Schedule</button>
+      <button type="button" class="tab" data-tab="log">Log</button>
       <button type="button" class="tab" data-tab="history">History</button>
-      <button type="button" class="tab" data-tab="bests">Personal Bests</button>
+      <button type="button" class="tab" data-tab="bests">Bests</button>
     </nav>
   </header>
 
   <main>
     <p id="message" class="message" role="status" hidden></p>
 
+    <!-- TODAY TAB -->
+    <section id="tab-today" class="panel">
+      <div id="today"></div>
+    </section>
+
+    <!-- SCHEDULE TAB -->
+    <section id="tab-schedule" class="panel" hidden>
+      <div class="card">
+        <h2>My free time</h2>
+        <p class="hint">Tick the days you are at home, then set the start time and how long you have.</p>
+        <div id="schedule-days"></div>
+        <button type="button" id="save-schedule" class="primary">Save Schedule</button>
+      </div>
+      <div id="week"></div>
+    </section>
+
     <!-- LOG TAB -->
-    <section id="tab-log" class="panel">
+    <section id="tab-log" class="panel" hidden>
       <form id="workout-form" class="card" novalidate>
         <h2 id="form-title">Log a workout</h2>
 
@@ -77,6 +95,7 @@
     </section>
   </main>
 
+  <script src="planner.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
