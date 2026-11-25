@@ -1,8 +1,9 @@
 // Lets the app open without internet by keeping a copy of its files on the phone.
 // IMPORTANT: change the version number whenever any app file changes,
 // otherwise the phone keeps using its old copy.
-const VERSION = "workout-v2";
-const FILES = ["./", "index.html", "style.css", "planner.js", "app.js","manifest.json", "icon-180.png", "icon-512.png"];
+const VERSION = "workout-v10";
+const FILES = ["./", "index.html", "style.css", "manifest.json", "icon-180.png", "icon-512.png",
+  "theme.js", "icons.js", "effects.js", "helpers.js","storage.js", "exercises.js", "planner.js", "timer.js", "log.js", "history.js", "bests.js", "backup.js", "charts.js", "dashboard.js", "goals.js", "calendar.js", "insights.js", "report.js", "library.js", "routines.js", "live.js", "progress.js", "muscles.js", "body.js", "motivation.js", "app.js"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

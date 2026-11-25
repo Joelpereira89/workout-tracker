@@ -1,5 +1,5 @@
 // Planner: builds your workouts from your weekly schedule and your gym's equipment.
-// Loaded before app.js, which provides helpers such as make() and saveData().
+// Uses make() from helpers.js and saveData() from storage.js.
 
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MINUTE_CHOICES = [20, 30, 45, 60, 75, 90];
@@ -51,7 +51,8 @@ function planWeek(schedule, date) {
 
 // Picks as many exercises as fit in the time available
 function buildSession(key, minutes) {
-  const [title, ...names] = SESSIONS[key];
+  const [title, ...all] = SESSIONS[key];
+  const names = all.filter((name) => !exerciseInfo(name).hidden); // leave out exercises you hid
   const short = minutes <= 30;
   let total = 5; // warm-up
   const exercises = [];
@@ -74,15 +75,15 @@ function buildSession(key, minutes) {
 // Suggests a weight using the last time you did this exercise before today
 function suggestion(item) {
   const earlier = data.entries
-    .filter((e) => e.exercise === item.name && e.date < today())
+    .filter((e) => e.exercise === item.name && e.date < today() && countedSets(e).length)
     .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
   if (!earlier.length) {
     return { weight: "", text: "First time: choose a weight you could lift for about 2 more reps than you do." };
   }
 
   const last = earlier[0];
-  const top = Math.max(...last.sets.map((s) => s.weight));
-  const reps = last.sets.filter((s) => s.weight === top).map((s) => s.reps);
+  const top = Math.max(...countedSets(last).map((s) => s.weight));
+  const reps = countedSets(last).filter((s) => s.weight === top).map((s) => s.reps);
   const history = `Last time: ${weightLabel(top)} × ${reps.join(", ")}.`;
   const ready = reps.length >= item.sets && reps.every((r) => r >= item.high);
   const maxedDumbbell = item.name.startsWith("Dumbbell") || item.name.startsWith("Incline Dumbbell");
@@ -109,12 +110,8 @@ function renderToday() {
   box.textContent = "";
 
   if (!data.schedule || !data.schedule.some((d) => d.free)) {
-    const card = make("div", "card empty");
-    card.append(make("p", "", "Tell the app when you are free, and it will plan your workouts."));
-    const button = make("button", "primary", "Set my schedule");
-    button.type = "button";
-    button.addEventListener("click", () => showTab("schedule"));
-    card.append(button);
+    const card = make("div", "card");
+    card.append(emptyState("calendar", "No plan yet. Tell me when you're free and I'll build one.", "Set my schedule", () => showTab("schedule"), "schedule"));
     box.append(card);
     return;
   }
@@ -162,6 +159,7 @@ function renderToday() {
     );
     const button = make("button", "secondary full", done ? "Log again" : "Log this");
     button.type = "button";
+    button.prepend(icon("log"));
     button.addEventListener("click", () => logPlanned(item, advice.weight));
     card.append(button);
     box.append(card);
@@ -170,11 +168,19 @@ function renderToday() {
 
 // Opens the Log tab with the exercise, set count and suggested weight filled in
 function logPlanned(item, weight) {
+  // During a live workout, add it to the workout instead
+  if (readTimer()) {
+    addLiveExercise(item.name, item.sets, item.low);
+    showTab("log");
+    return;
+  }
   resetForm();
   fillExerciseList(item.name);
   $("sets").textContent = "";
   for (let i = 0; i < item.sets; i++) addSetRow("", weight);
+  showFormFields();
   showTab("log");
+  showPastForm();
 }
 
 /* ---------- Schedule screen ---------- */
@@ -229,7 +235,12 @@ function saveSchedule() {
 function renderWeek() {
   const box = $("week");
   box.textContent = "";
-  if (!data.schedule || !data.schedule.some((d) => d.free)) return;
+  if (!data.schedule || !data.schedule.some((d) => d.free)) {
+    const card = make("div", "card");
+    card.append(emptyState("calendar", "No weekly plan yet. Tick your free days above, then save.", "Choose my days", () => $("schedule-days").scrollIntoView({ block: "center" }), "schedule"));
+    box.append(card);
+    return;
+  }
 
   box.append(make("h2", "date-heading", "This week's plan"));
   planWeek(data.schedule, new Date()).forEach((key, i) => {

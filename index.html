@@ -4,46 +4,71 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-title" content="Workouts">
-  <meta name="theme-color" content="#1f3a5f">
+  <meta name="theme-color" content="#0f1115">
   <title>Workout Tracker</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="stylesheet" href="style.css">
+  <script src="theme.js"></script>
 </head>
 <body>
   <header>
-    <h1>Workout Tracker</h1>
-    <nav class="tabs">
-      <button type="button" class="tab active" data-tab="today">Today</button>
-      <button type="button" class="tab" data-tab="schedule">Schedule</button>
-      <button type="button" class="tab" data-tab="log">Log</button>
-      <button type="button" class="tab" data-tab="history">History</button>
-      <button type="button" class="tab" data-tab="bests">Bests</button>
-    </nav>
+    <h1 id="page-title">Dashboard</h1>
+    <button type="button" id="theme" class="round"></button>
   </header>
 
   <main>
     <p id="message" class="message" role="status" hidden></p>
 
-    <!-- TODAY TAB -->
-    <section id="tab-today" class="panel">
-      <div id="today"></div>
+    <!-- DASHBOARD TAB -->
+    <section id="tab-dashboard" class="panel">
+      <div id="dashboard"></div>
     </section>
 
-    <!-- SCHEDULE TAB -->
-    <section id="tab-schedule" class="panel" hidden>
-      <div class="card">
-        <h2>My free time</h2>
-        <p class="hint">Tick the days you are at home, then set the start time and how long you have.</p>
-        <div id="schedule-days"></div>
-        <button type="button" id="save-schedule" class="primary">Save Schedule</button>
-      </div>
-      <div id="week"></div>
-    </section>
-
-    <!-- LOG TAB -->
+    <!-- LOG TAB (logging, or today's planned workout) -->
     <section id="tab-log" class="panel" hidden>
-      <form id="workout-form" class="card" novalidate>
+      <div class="segments">
+        <button type="button" data-view="log" class="selected" data-icon="log">Workout</button>
+        <button type="button" data-view="today" data-icon="today">Plan</button>
+        <button type="button" data-view="library" data-icon="history">Exercises</button>
+      </div>
+
+      <div id="view-log">
+      <div id="summary"></div>
+
+      <div class="card timer" id="timer-card">
+        <h2>Workout timer</h2>
+        <p id="clock" class="clock">00:00:00</p>
+        <p id="timer-status" class="hint"></p>
+        <button type="button" id="timer-start" class="primary" data-icon="play">Start Workout</button>
+        <div class="button-row">
+          <button type="button" id="timer-pause" data-icon="pause" hidden>Pause</button>
+          <button type="button" id="timer-resume" data-icon="play" hidden>Resume</button>
+          <button type="button" id="timer-finish" class="accent" data-icon="check" hidden>Finish Workout</button>
+        </div>
+      </div>
+
+      <div id="live" hidden>
+        <div id="live-items"></div>
+        <div class="card">
+          <label for="live-exercise">Add an exercise</label>
+          <select id="live-exercise"></select>
+          <button type="button" id="live-add" class="accent full" data-icon="plus">Add to workout</button>
+          <button type="button" id="live-discard" class="danger full" data-icon="trash">Discard workout</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <label for="timer-type" class="first">Workout type</label>
+        <select id="timer-type"></select>
+      </div>
+
+      <div id="routines"></div>
+
+      <div id="past-area">
+      <details id="past" class="card">
+        <summary>Log a past workout</summary>
+      <form id="workout-form" novalidate>
         <h2 id="form-title">Log a workout</h2>
 
         <label for="date">Date</label>
@@ -53,24 +78,63 @@
         <select id="exercise"></select>
 
         <div class="add-exercise">
-          <input type="text" id="new-exercise" placeholder="New exercise name" maxlength="60" aria-label="New exercise name">
-          <button type="button" id="add-exercise" class="secondary">Add exercise</button>
+          <input type="text" id="new-exercise" placeholder="New exercise" maxlength="60" aria-label="New exercise name">
+          <button type="button" id="add-exercise" data-icon="plus">Add exercise</button>
         </div>
 
+        <div id="cardio-fields" hidden>
+          <div class="duration">
+            <label>Minutes <input type="number" id="cardio-minutes" inputmode="numeric" pattern="[0-9]*" min="1"></label>
+            <label>Calories (optional) <input type="number" id="cardio-calories" inputmode="numeric" pattern="[0-9]*" min="0"></label>
+            <label>Distance (optional) <input type="number" id="cardio-distance" inputmode="decimal" min="0" step="any"></label>
+            <label>Unit <select id="cardio-unit"><option value="km">km</option><option value="mi">miles</option></select></label>
+          </div>
+        </div>
+
+        <div id="strength-fields">
         <h3>Sets</h3>
         <p class="hint">For dumbbells, enter the weight of one dumbbell. Use 0 for bodyweight.</p>
         <div class="set-row set-head">
           <span>Set</span><span>Reps</span><span>Weight (lbs)</span><span></span>
         </div>
         <div id="sets"></div>
-        <button type="button" id="add-set" class="secondary">+ Add set</button>
+        <button type="button" id="add-set" data-icon="plus">Add set</button>
+        </div>
 
         <label for="notes">Notes (optional)</label>
         <textarea id="notes" rows="3" maxlength="500"></textarea>
 
-        <button type="submit" id="save" class="primary">Save Workout</button>
-        <button type="button" id="cancel-edit" class="secondary full" hidden>Cancel editing</button>
+        <button type="submit" class="primary" data-icon="save" id="save-button"><span id="save">Save Workout</span></button>
+        <button type="button" id="cancel-edit" class="full" data-icon="close" hidden>Cancel editing</button>
       </form>
+      </details>
+
+      <details class="card">
+        <summary>Forgot to time a workout?</summary>
+        <form id="time-form" novalidate>
+          <label for="time-date">Date</label>
+          <input type="date" id="time-date">
+          <label for="time-start">Start time (optional)</label>
+          <input type="time" id="time-start">
+          <div class="duration">
+            <label>Hours <input type="number" id="time-hours" inputmode="numeric" pattern="[0-9]*" min="0" max="23" step="1"></label>
+            <label>Minutes <input type="number" id="time-minutes" inputmode="numeric" pattern="[0-9]*" min="0" max="59" step="1"></label>
+          </div>
+          <label for="time-type">Workout type</label>
+          <select id="time-type"></select>
+          <button type="submit" class="full" data-icon="save">Save time</button>
+        </form>
+      </details>
+      </div>
+      </div>
+
+      <div id="view-library" hidden>
+        <div id="library"></div>
+      </div>
+
+      <div id="view-today" hidden>
+        <div id="today"></div>
+      </div>
     </section>
 
     <!-- HISTORY TAB -->
@@ -78,24 +142,90 @@
       <div id="history"></div>
     </section>
 
-    <!-- PERSONAL BESTS TAB -->
-    <section id="tab-bests" class="panel" hidden>
-      <div id="bests"></div>
+    <!-- PROGRESS TAB -->
+    <section id="tab-progress" class="panel" hidden>
+      <div class="segments four">
+        <button type="button" data-progress="charts" class="selected">Charts</button>
+        <button type="button" data-progress="records">Records</button>
+        <button type="button" data-progress="muscles">Muscles</button>
+        <button type="button" data-progress="badges">Badges</button>
+      </div>
+      <div id="progress-charts"></div>
+      <div id="bests" hidden></div>
+      <div id="muscles" hidden></div>
+      <div id="badges" hidden></div>
     </section>
 
-    <!-- BACKUP (shown under every tab) -->
+    <!-- BODY TAB -->
+    <section id="tab-body" class="panel" hidden>
+      <div id="body-view"></div>
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section id="tab-settings" class="panel" hidden>
+      <div class="card">
+        <h2>My free time</h2>
+        <p class="hint">Tick the days you are at home, then set the start time and how long you have.</p>
+        <div id="schedule-days"></div>
+        <button type="button" id="save-schedule" class="primary" data-icon="save">Save Schedule</button>
+      </div>
+      <div id="week"></div>
     <section class="card backup">
       <h2>Backup</h2>
       <p class="hint">Export saves all your data to a file. Import replaces what is on this device with the file's data.</p>
       <div class="button-row">
-        <button type="button" id="export" class="secondary">Export</button>
-        <button type="button" id="import" class="secondary">Import</button>
+        <button type="button" id="export" class="accent" data-icon="export">Export</button>
+        <button type="button" id="import" data-icon="import">Import</button>
       </div>
       <input type="file" id="import-file" accept=".json,application/json" hidden>
     </section>
+    </section>
   </main>
 
+  <!-- Navigation: bottom bar on phones, top bar on wide screens -->
+  <nav class="tabs">
+    <button type="button" class="tab active" data-tab="dashboard" data-icon="dashboard">Dashboard</button>
+    <button type="button" class="tab" data-tab="log" data-icon="log">Log</button>
+    <button type="button" class="tab" data-tab="history" data-icon="history">History</button>
+    <button type="button" class="tab" data-tab="progress" data-icon="bests">Progress</button>
+    <button type="button" class="tab" data-tab="body" data-icon="body">Body</button>
+    <button type="button" class="tab" data-tab="settings" data-icon="settings">Settings</button>
+  </nav>
+
+  <div id="rest" class="rest-bar" role="timer" hidden>
+    <span>Rest <strong id="rest-time"></strong></span>
+    <button type="button" id="rest-less">−15s</button>
+    <button type="button" id="rest-more">+15s</button>
+    <button type="button" id="rest-skip" class="accent">Skip</button>
+  </div>
+
+  <button type="button" id="fab" class="fab" data-icon="plus"><span id="fab-text">Start Workout</span></button>
+
+  <!-- Order matters: app.js must stay last, because it starts the app -->
+  <script src="helpers.js"></script>
+  <script src="icons.js"></script>
+  <script src="effects.js"></script>
+  <script src="storage.js"></script>
+  <script src="exercises.js"></script>
   <script src="planner.js"></script>
+  <script src="timer.js"></script>
+  <script src="log.js"></script>
+  <script src="history.js"></script>
+  <script src="bests.js"></script>
+  <script src="backup.js"></script>
+  <script src="charts.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="goals.js"></script>
+  <script src="calendar.js"></script>
+  <script src="insights.js"></script>
+  <script src="report.js"></script>
+  <script src="library.js"></script>
+  <script src="routines.js"></script>
+  <script src="live.js"></script>
+  <script src="progress.js"></script>
+  <script src="muscles.js"></script>
+  <script src="body.js"></script>
+  <script src="motivation.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
