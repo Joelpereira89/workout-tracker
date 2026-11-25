@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-title" content="Workouts">
+  <meta name="theme-color" content="#1f3a5f">
+  <title>Workout Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Workout Tracker</h1>
+    <nav class="tabs">
+      <button type="button" class="tab active" data-tab="log">Log</button>
+      <button type="button" class="tab" data-tab="history">History</button>
+      <button type="button" class="tab" data-tab="bests">Personal Bests</button>
+    </nav>
+  </header>
+
+  <main>
+    <p id="message" class="message" role="status" hidden></p>
+
+    <!-- LOG TAB -->
+    <section id="tab-log" class="panel">
+      <form id="workout-form" class="card" novalidate>
+        <h2 id="form-title">Log a workout</h2>
+
+        <label for="date">Date</label>
+        <input type="date" id="date">
+
+        <label for="exercise">Exercise</label>
+        <select id="exercise"></select>
+
+        <div class="add-exercise">
+          <input type="text" id="new-exercise" placeholder="New exercise name" maxlength="60" aria-label="New exercise name">
+          <button type="button" id="add-exercise" class="secondary">Add exercise</button>
+        </div>
+
+        <h3>Sets</h3>
+        <p class="hint">For dumbbells, enter the weight of one dumbbell. Use 0 for bodyweight.</p>
+        <div class="set-row set-head">
+          <span>Set</span><span>Reps</span><span>Weight (lbs)</span><span></span>
+        </div>
+        <div id="sets"></div>
+        <button type="button" id="add-set" class="secondary">+ Add set</button>
+
+        <label for="notes">Notes (optional)</label>
+        <textarea id="notes" rows="3" maxlength="500"></textarea>
+
+        <button type="submit" id="save" class="primary">Save Workout</button>
+        <button type="button" id="cancel-edit" class="secondary full" hidden>Cancel editing</button>
+      </form>
+    </section>
+
+    <!-- HISTORY TAB -->
+    <section id="tab-history" class="panel" hidden>
+      <div id="history"></div>
+    </section>
+
+    <!-- PERSONAL BESTS TAB -->
+    <section id="tab-bests" class="panel" hidden>
+      <div id="bests"></div>
+    </section>
+
+    <!-- BACKUP (shown under every tab) -->
+    <section class="card backup">
+      <h2>Backup</h2>
+      <p class="hint">Export saves all your data to a file. Import replaces what is on this device with the file's data.</p>
+      <div class="button-row">
+        <button type="button" id="export" class="secondary">Export</button>
+        <button type="button" id="import" class="secondary">Import</button>
+      </div>
+      <input type="file" id="import-file" accept=".json,application/json" hidden>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
